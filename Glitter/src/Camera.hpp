@@ -1,27 +1,33 @@
 //
-// Created by Steve Wheeler on 16/04/2024.
+// Created by Steve Wheeler on 29/09/2023.
 //
-
-#include <glm/glm.hpp>
 
 #pragma once
 
+#include <SDL2/SDL.h>
+
+#include <glm/glm.hpp>
+
 namespace sage
 {
-
-class Camera
+struct Camera
 {
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-public:
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-    glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
-    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    float lastX = 400, lastY = 300;
-    float yaw = -90, pitch = 0;
-    float fov = 45.0f;
+    glm::mat4 view;
+    glm::vec3 pos;
+    glm::vec3 rotation;
+    glm::vec3 direction;
+    glm::vec3 forward{};
+    glm::vec3 right{};
+    glm::vec3 up;
+    const float fov;
+    const float zFar;
+    const float zNear;
+    Camera(glm::vec3 _pos, glm::vec3 _rotation, glm::vec3 _direction, glm::vec3 _up, float _fov, float _zFar, float _zNear);
+    void Update(float deltaTime);
+    void HandleEvent(SDL_Event *event);
+    void UpdateDirectionVectors(const glm::mat4& viewMatrix);
+private:
+    void rotate(float x, float y);
 };
+}
 
-} // sage

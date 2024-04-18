@@ -4,15 +4,14 @@
 
 #include "Application.hpp"
 
-#include "config.hpp"
-
+#include "slib.hpp"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Shader.hpp"
-#include "RendererGl.hpp"
+//include "RendererGl.hpp"
 #include "Model.hpp"
 
 #include <iostream>
@@ -22,52 +21,7 @@
 namespace sage
 {
 
-float deltaTime = 0.0f;    // Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
 
-void Application::handleMouse()
-{
-    int xpos, ypos;
-    SDL_GetMouseState(&xpos, &ypos);
-    if (firstMouse)
-    {
-        cam.lastX = xpos;
-        cam.lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - cam.lastX;
-    float yoffset = cam.lastY - ypos;
-    cam.lastX = xpos;
-    cam.lastY = ypos;
-
-    float sensitivity = 0.1f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    cam.yaw   += xoffset;
-    cam.pitch += yoffset;
-
-    if(cam.pitch > 89.0f)
-        cam.pitch = 89.0f;
-    if(cam.pitch < -89.0f)
-        cam.pitch = -89.0f;
-
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(cam.yaw)) * cos(glm::radians(cam.pitch));
-    direction.y = sin(glm::radians(cam.pitch));
-    direction.z = sin(glm::radians(cam.yaw)) * cos(glm::radians(cam.pitch));
-    cam.cameraFront = glm::normalize(direction);
-}
-
-void Application::handleScroll(double xoffset, double yoffset)
-{
-    cam.fov += (float)yoffset;
-    if (cam.fov < 1.0f)
-        cam.fov = 1.0f;
-    if (cam.fov > 90.0f)
-        cam.fov = 90.0f;
-}
 
 // process all input: query SDL2 whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
@@ -77,18 +31,6 @@ void Application::processInput()
 
     if (state[SDL_SCANCODE_ESCAPE])
         quit = true;
-
-    float cameraSpeed = 2.5f * deltaTime;
-    if (state[SDL_SCANCODE_W])
-        cam.cameraPos += cameraSpeed * cam.cameraFront;
-    if (state[SDL_SCANCODE_S])
-        cam.cameraPos -= cameraSpeed * cam.cameraFront;
-    if (state[SDL_SCANCODE_A])
-        cam.cameraPos -= glm::normalize(glm::cross(cam.cameraFront, cam.cameraUp)) * cameraSpeed;
-    if (state[SDL_SCANCODE_D])
-        cam.cameraPos += glm::normalize(glm::cross(cam.cameraFront, cam.cameraUp)) * cameraSpeed;
-
-    handleMouse();
 }
 
 int Application::initSDL()
@@ -110,7 +52,7 @@ int Application::initSDL()
 
     // Create window
     window = SDL_CreateWindow("LearnOpenGL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                              SCR_WIDTH, SCR_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+                              SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     if (window == NULL)
     {
         std::cout << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
@@ -134,14 +76,9 @@ int Application::initSDL()
     }
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
+    //SDL_WarpMouseInWindow(window, SCR_WIDTH / 2, SCR_HEIGHT / 2);
 
     glEnable(GL_DEPTH_TEST);
-}
-
-Application::Application()
-{
-    quit = false;
-    initSDL();
 }
 
 void Application::Update()
@@ -158,6 +95,7 @@ void Application::Update()
         float currentFrame = SDL_GetTicks() / 1000.0f;
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        cam.Update(deltaTime);
         // input
         // -----
         processInput();
@@ -165,14 +103,12 @@ void Application::Update()
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glm::mat4 view = glm::lookAt(cam.cameraPos, cam.cameraPos + cam.cameraFront, cam.cameraUp);
         glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), model.position);
         modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 proj = glm::perspective(glm::radians(cam.fov), (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 1000.0f);
+        glm::mat4 proj = glm::perspective(glm::radians(cam.fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, zNear, zFar);
         glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
         glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
-        glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(cam.view));
         model.Draw();
 
         // SDL2: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -181,6 +117,7 @@ void Application::Update()
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
+            cam.HandleEvent(&event);
             if (event.type == SDL_QUIT)
                 quit = true;
             else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
@@ -191,6 +128,13 @@ void Application::Update()
             }
         }
     }
+}
+
+Application::Application() :
+    cam(sage::Camera({0, 0, 5}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear))
+{
+    quit = false;
+    initSDL();
 }
 
 Application::~Application()

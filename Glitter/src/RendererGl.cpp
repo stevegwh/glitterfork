@@ -61,7 +61,8 @@ void RendererGl::cleanup()
     
 }
 
-RendererGl::RendererGl()
+RendererGl::RendererGl() :
+    cam(sage::Camera({0, 0, 5}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear))
 {
 }
 

@@ -13,6 +13,16 @@ namespace sage
 
 class Application
 {
+    static constexpr double SCREEN_WIDTH = 1280;
+    static constexpr double SCREEN_HEIGHT = 720;
+    static constexpr float zFar = 1000;
+    static constexpr float zNear = 0.1;
+    static constexpr float aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+    static constexpr float fov = 60;
+    static constexpr unsigned long screenSize = SCREEN_WIDTH * SCREEN_HEIGHT;
+    
+    float deltaTime = 0.0f;    // Time between current frame and last frame
+    float lastFrame = 0.0f; // Time of last frame
     SDL_Window* window;
     SDL_GLContext context;
     sage::Camera cam;
