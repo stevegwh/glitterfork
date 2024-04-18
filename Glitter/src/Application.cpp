@@ -16,30 +16,19 @@
 #include "Model.hpp"
 
 #include <iostream>
+#include <SDL2/SDL.h>
 
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}
-
-
-float deltaTime = 0.0f;	// Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
 
 namespace sage
 {
 
+float deltaTime = 0.0f;    // Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+
 void Application::handleMouse()
 {
-    GLdouble xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
+    int xpos, ypos;
+    SDL_GetMouseState(&xpos, &ypos);
     if (firstMouse)
     {
         cam.lastX = xpos;
@@ -72,7 +61,7 @@ void Application::handleMouse()
 }
 
 void Application::handleScroll(double xoffset, double yoffset)
-{    
+{
     cam.fov += (float)yoffset;
     if (cam.fov < 1.0f)
         cam.fov = 1.0f;
@@ -80,81 +69,93 @@ void Application::handleScroll(double xoffset, double yoffset)
         cam.fov = 90.0f;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+// process all input: query SDL2 whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void Application::processInput()
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+    const Uint8* state = SDL_GetKeyboardState(NULL);
+
+    if (state[SDL_SCANCODE_ESCAPE])
+        quit = true;
 
     float cameraSpeed = 2.5f * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (state[SDL_SCANCODE_W])
         cam.cameraPos += cameraSpeed * cam.cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if (state[SDL_SCANCODE_S])
         cam.cameraPos -= cameraSpeed * cam.cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (state[SDL_SCANCODE_A])
         cam.cameraPos -= glm::normalize(glm::cross(cam.cameraFront, cam.cameraUp)) * cameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (state[SDL_SCANCODE_D])
         cam.cameraPos += glm::normalize(glm::cross(cam.cameraFront, cam.cameraUp)) * cameraSpeed;
-    
+
     handleMouse();
 }
 
-int Application::initGlfw()
+int Application::initSDL()
 {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-    // glfw window creation
-    // --------------------
-     window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
+        std::cout << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return -1;
     }
 
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-//    glfwSetCursorPosCallback(window, mouse_callback);
-//    glfwSetScrollCallback(window, scroll_callback);
+    // Set OpenGL attributes
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+#ifdef __APPLE__
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+#endif
+
+    // Create window
+    window = SDL_CreateWindow("LearnOpenGL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                              SCR_WIDTH, SCR_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    if (window == NULL)
+    {
+        std::cout << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
+        return -1;
+    }
+
+    // Create OpenGL context
+    context = SDL_GL_CreateContext(window);
+    if (context == NULL)
+    {
+        std::cout << "OpenGL context could not be created! SDL Error: " << SDL_GetError() << std::endl;
+        return -1;
+    }
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     glEnable(GL_DEPTH_TEST);
 }
 
 Application::Application()
 {
-    initGlfw();
+    quit = false;
+    initSDL();
 }
 
 void Application::Update()
 {
-    // glfw: initialize and configure
+    // SDL2: initialize and configure
     // sage::RendererGl rendererGl;
     sage::Shader shader(std::string(BINARY_PATH + "Shaders/shader.vert"), std::string(BINARY_PATH + "Shaders/shader.frag"));
-    sage::Model model(BINARY_PATH + "resources/turret.obj", shader);
-    
+    sage::Model model(BINARY_PATH + "resources/cube_steve.obj", shader);
+
     // render loop
     // -----------
-    while (!glfwWindowShouldClose(window))
+    while (!quit)
     {
-        float currentFrame = glfwGetTime();
+        float currentFrame = SDL_GetTicks() / 1000.0f;
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         // input
@@ -174,17 +175,31 @@ void Application::Update()
         glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
         model.Draw();
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+        // SDL2: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        SDL_GL_SwapWindow(window);
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT)
+                quit = true;
+            else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+            {
+                int width, height;
+                SDL_GetWindowSize(window, &width, &height);
+                glViewport(0, 0, width, height);
+            }
+        }
     }
 }
 
 Application::~Application()
 {
-    // glfw: terminate, clearing all previously allocated GLFW resources.
+    // SDL2: terminate, clearing all previously allocated SDL2 resources.
     // ------------------------------------------------------------------
-    glfwTerminate();
+    SDL_GL_DeleteContext(context);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
-} // sage
+
+} // sage   

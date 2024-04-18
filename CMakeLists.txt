@@ -30,9 +30,10 @@ endif()
 include_directories(Glitter/Vendor/assimp/include/
                     Glitter/Vendor/bullet/src/
                     Glitter/Vendor/glad/include/
-                    Glitter/Vendor/glfw/include/
+                    #Glitter/Vendor/glfw/include/
                     Glitter/Vendor/glm/
                     Glitter/Vendor/stb/)
+find_package(SDL2 REQUIRED)
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Glitter/src/*.hpp)
@@ -57,9 +58,15 @@ add_definitions(-DGLFW_INCLUDE_NONE
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
-target_link_libraries(${PROJECT_NAME} assimp glfw
-                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
-                      BulletDynamics BulletCollision LinearMath)
+target_link_libraries(${PROJECT_NAME} 
+        assimp 
+        #glfw 
+        ${SDL2_LIBRARIES}
+        #${GLFW_LIBRARIES} 
+        ${GLAD_LIBRARIES} 
+        BulletDynamics 
+        BulletCollision 
+        LinearMath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 

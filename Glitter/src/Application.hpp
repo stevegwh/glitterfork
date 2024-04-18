@@ -6,17 +6,19 @@
 
 #include "Camera.hpp"
 #include <string>
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 
 namespace sage
 {
 
 class Application
 {
-    GLFWwindow* window;
+    SDL_Window* window;
+    SDL_GLContext context;
     sage::Camera cam;
     bool firstMouse = true;
-    int initGlfw();
+    bool quit;
+    int initSDL();
     void processInput();
     void handleMouse();
     void handleScroll(double xoffset, double yoffset);
