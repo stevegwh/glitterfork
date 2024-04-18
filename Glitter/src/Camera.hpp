@@ -20,7 +20,7 @@ public:
     glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
     glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     float lastX = 400, lastY = 300;
-    float yaw = 0, pitch = 0;
+    float yaw = -90, pitch = 0;
     float fov = 90.0f;
 };
 

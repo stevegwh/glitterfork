@@ -17,8 +17,6 @@ public:
     std::string fragShader;
     Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
     ~Shader();
-    Shader(Shader const &) = delete;
-    Shader & operator=(Shader const &) = delete;
     unsigned int ID;
     void Compile();
     void Use();
