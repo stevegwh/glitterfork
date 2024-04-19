@@ -86,16 +86,17 @@ void Application::Update()
     // SDL2: initialize and configure
     // sage::RendererGl rendererGl;
     sage::Shader shader(std::string(BINARY_PATH + "Shaders/shader.vert"), std::string(BINARY_PATH + "Shaders/shader.frag"));
-    sage::Model model(BINARY_PATH + "resources/cube_steve.obj", shader);
+    sage::Model model(BINARY_PATH + "resources/spyrolevel.obj", shader);
+    model.scale = { 1.0f, 1.0f, 1.0f };
 
     // render loop
     // -----------
     while (!quit)
     {
-        float currentFrame = SDL_GetTicks() / 1000.0f;
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-        cam.Update(deltaTime);
+        clock.tick();
+        fpsCounter.Update();
+        std::cout << fpsCounter.fps_current << std::endl;
+        cam.Update(clock.delta);
         // input
         // -----
         processInput();
@@ -103,8 +104,7 @@ void Application::Update()
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), model.position);
-        modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 modelMat = model.GetMatrix();
         glm::mat4 proj = glm::perspective(glm::radians(cam.fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, zNear, zFar);
         glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
         glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(proj));

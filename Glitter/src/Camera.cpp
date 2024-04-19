@@ -13,7 +13,7 @@ void Camera::Update(float deltaTime)
     view = slib::fpsviewGl(pos, rotation.x, rotation.y);
     forward = glm::vec3({view[0][2], view[1][2], view[2][2]});
     right = glm::vec3({view[0][0], view[1][0], view[2][0]});
-    const float speed = 7.5f; // Adjust this value as needed
+    const float speed = 0.03f; // Adjust this value as needed
     const float adjustedSpeed = speed * deltaTime;
 
     const Uint8 *keyState = SDL_GetKeyboardState(NULL);

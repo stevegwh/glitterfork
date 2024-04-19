@@ -227,5 +227,16 @@ void Model::Draw()
         mesh.Draw(shader);
     }
 }
+glm::mat4 Model::GetMatrix() const
+{
+    glm::mat4 out = glm::mat4(1.0f);
+    out = glm::translate(out, position);
+    out = glm::rotate(out, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    out = glm::rotate(out, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    out = glm::rotate(out, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    out = glm::scale(out, scale);
+
+    return out;
+}
 
 } //sage

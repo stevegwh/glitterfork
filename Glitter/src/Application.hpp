@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Camera.hpp"
+#include "utils.hpp"
 #include <string>
 #include <SDL2/SDL.h>
 
@@ -21,8 +22,8 @@ class Application
     static constexpr float fov = 60;
     static constexpr unsigned long screenSize = SCREEN_WIDTH * SCREEN_HEIGHT;
     
-    float deltaTime = 0.0f;    // Time between current frame and last frame
-    float lastFrame = 0.0f; // Time of last frame
+    Clock clock;
+    FPSCounter fpsCounter;
     SDL_Window* window;
     SDL_GLContext context;
     sage::Camera cam;
