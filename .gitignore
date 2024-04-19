@@ -1,4 +1,5 @@
 [Bb]uild/
 cmake-build-debug
-Glitter/Vendor
 .idea
+resources
+Glitter/Vendor

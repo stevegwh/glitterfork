@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(Glitter)
 
-option(GLFW_BUILD_DOCS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_BUILD_TESTS OFF)
-add_subdirectory(Glitter/Vendor/glfw)
-
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
@@ -30,7 +25,6 @@ endif()
 include_directories(Glitter/Vendor/assimp/include/
                     Glitter/Vendor/bullet/src/
                     Glitter/Vendor/glad/include/
-                    #Glitter/Vendor/glfw/include/
                     Glitter/Vendor/glm/
                     Glitter/Vendor/stb/)
 find_package(SDL2 REQUIRED)
@@ -59,10 +53,8 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
 target_link_libraries(${PROJECT_NAME} 
-        assimp 
-        #glfw 
+        assimp
         ${SDL2_LIBRARIES}
-        #${GLFW_LIBRARIES} 
         ${GLAD_LIBRARIES} 
         BulletDynamics 
         BulletCollision 
