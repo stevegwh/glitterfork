@@ -6,6 +6,7 @@
 
 #include <string>
 #include "Camera.hpp"
+#include "Renderable.hpp"
 #include <glad/glad.h>
 
 namespace sage
@@ -13,21 +14,15 @@ namespace sage
 
 class RendererGl
 {
-    static constexpr double SCREEN_WIDTH = 1280;
-    static constexpr double SCREEN_HEIGHT = 720;
-    static constexpr float zFar = 1000;
-    static constexpr float zNear = 0.1;
-    static constexpr float aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
-    static constexpr float fov = 120;
-    static constexpr unsigned long screenSize = SCREEN_WIDTH * SCREEN_HEIGHT;
-    sage::Camera cam;
+    sage::Camera* cam;
     bool firstMouse = true;
     void cleanup();
+    std::vector<std::unique_ptr<Renderable>> renderables;
 public:
-    RendererGl();
+    RendererGl(sage::Camera* _cam);
     ~RendererGl();
     void Render();
-    unsigned int LoadTexture(const std::string& path, GLenum textureNumber, GLenum format);
+    void AddRenderable(std::unique_ptr<Renderable> renderable);
 };
 
 } // sage

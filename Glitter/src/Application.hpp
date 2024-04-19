@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include <string>
+#include <memory>
+#include <SDL2/SDL.h>
+
+#include "RendererGl.hpp"
 #include "Camera.hpp"
 #include "utils.hpp"
-#include <string>
-#include <SDL2/SDL.h>
 
 namespace sage
 {
@@ -21,22 +24,24 @@ class Application
     static constexpr float aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
     static constexpr float fov = 60;
     static constexpr unsigned long screenSize = SCREEN_WIDTH * SCREEN_HEIGHT;
+
+    sage::Camera cam;
+    RendererGl renderer;
     
     Clock clock;
     FPSCounter fpsCounter;
     SDL_Window* window;
     SDL_GLContext context;
-    sage::Camera cam;
-    bool firstMouse = true;
+
     bool quit;
     int initSDL();
     void processInput();
-    void handleMouse();
-    void handleScroll(double xoffset, double yoffset);
+    void update();
+    void draw();
 public:
     Application();
     ~Application();
-    void Update();
+    void Run();
     std::string BINARY_PATH;
 };
 

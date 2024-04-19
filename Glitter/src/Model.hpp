@@ -20,15 +20,11 @@ namespace sage {
 class Model
 {
 public:
-    glm::vec3 position = { 0.0f, -9.0f, -12.0f };
-    glm::vec3 rotation = { 0, 0, 0 };
-    glm::vec3 scale = { 1.0f, 1.0f, 1.0f };
     std::vector<slib::texture> textures_loaded;
     std::vector<Mesh> meshes;
     std::string directory;
     bool gammaCorrection{};
     Shader shader;
-    glm::mat4 GetMatrix() const;
 
     Model(std::string const &path, const Shader& _shader);
     void Draw();

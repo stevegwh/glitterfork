@@ -8,6 +8,6 @@ int main(int argc, char *argv[])
     std:: string BINARY_PATH = fullPath.substr(0, fullPath.find_last_of('/', fullPath.size())) + "/";
     sage::Application app;
     app.BINARY_PATH = BINARY_PATH;
-    app.Update();
+    app.Run();
     return 0;
 }

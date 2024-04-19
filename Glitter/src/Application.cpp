@@ -4,15 +4,13 @@
 
 #include "Application.hpp"
 
-#include "slib.hpp"
+
 #include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <memory>
 
 #include "Shader.hpp"
-//include "RendererGl.hpp"
 #include "Model.hpp"
+#include "Renderable.hpp"
 
 #include <iostream>
 #include <SDL2/SDL.h>
@@ -20,17 +18,28 @@
 
 namespace sage
 {
-
-
-
 // process all input: query SDL2 whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void Application::processInput()
 {
+    SDL_Event event;
     const Uint8* state = SDL_GetKeyboardState(NULL);
 
     if (state[SDL_SCANCODE_ESCAPE])
         quit = true;
+
+    while (SDL_PollEvent(&event))
+    {
+        cam.HandleEvent(&event);
+        if (event.type == SDL_QUIT)
+            quit = true;
+        else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+        {
+            int width, height;
+            SDL_GetWindowSize(window, &width, &height);
+            glViewport(0, 0, width, height);
+        }
+    }
 }
 
 int Application::initSDL()
@@ -81,57 +90,39 @@ int Application::initSDL()
     glEnable(GL_DEPTH_TEST);
 }
 
-void Application::Update()
+void Application::update()
+{
+    clock.tick();
+    fpsCounter.Update();
+    std::cout << fpsCounter.fps_current << std::endl;
+    cam.Update(clock.delta);
+    processInput();
+}
+
+void Application::draw()
+{
+    renderer.Render();
+    SDL_GL_SwapWindow(window);
+}
+
+void Application::Run()
 {
     // SDL2: initialize and configure
-    // sage::RendererGl rendererGl;
     sage::Shader shader(std::string(BINARY_PATH + "Shaders/shader.vert"), std::string(BINARY_PATH + "Shaders/shader.frag"));
-    sage::Model model(BINARY_PATH + "resources/spyrolevel.obj", shader);
-    model.scale = { 1.0f, 1.0f, 1.0f };
-
-    // render loop
-    // -----------
+    auto model = std::make_unique<Model>(BINARY_PATH + "resources/level.obj", shader);
+    auto renderable = std::make_unique<Renderable>(std::move(model), glm::vec3(0), glm::vec3(0), glm::vec3(1.0f));
+    renderer.AddRenderable(std::move(renderable));
+    
     while (!quit)
     {
-        clock.tick();
-        fpsCounter.Update();
-        std::cout << fpsCounter.fps_current << std::endl;
-        cam.Update(clock.delta);
-        // input
-        // -----
-        processInput();
-        // render
-        // ------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glm::mat4 modelMat = model.GetMatrix();
-        glm::mat4 proj = glm::perspective(glm::radians(cam.fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, zNear, zFar);
-        glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
-        glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
-        glUniformMatrix4fv(glGetUniformLocation(model.shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(cam.view));
-        model.Draw();
-
-        // SDL2: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
-        SDL_GL_SwapWindow(window);
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            cam.HandleEvent(&event);
-            if (event.type == SDL_QUIT)
-                quit = true;
-            else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-            {
-                int width, height;
-                SDL_GetWindowSize(window, &width, &height);
-                glViewport(0, 0, width, height);
-            }
-        }
+        update();
+        draw();
     }
 }
 
 Application::Application() :
-    cam(sage::Camera({0, 0, 5}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear))
+    cam(sage::Camera({0, 0, 5}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear)),
+    renderer(RendererGl(&cam))
 {
     quit = false;
     initSDL();
