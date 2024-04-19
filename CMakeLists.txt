@@ -22,12 +22,14 @@ else()
     endif()
 endif()
 
+find_package(SDL2 REQUIRED)
+
 include_directories(Glitter/Vendor/assimp/include/
                     Glitter/Vendor/bullet/src/
                     Glitter/Vendor/glad/include/
                     Glitter/Vendor/glm/
-                    Glitter/Vendor/stb/)
-find_package(SDL2 REQUIRED)
+                    Glitter/Vendor/stb/
+                    ${SDL_INCLUDE_DIR})
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Glitter/src/*.hpp)
@@ -47,8 +49,7 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
-add_definitions(-DGLFW_INCLUDE_NONE
-                -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
+add_definitions(-DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
@@ -61,7 +62,6 @@ target_link_libraries(${PROJECT_NAME}
         LinearMath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
-
 
 add_custom_command(
         TARGET ${PROJECT_NAME} POST_BUILD
