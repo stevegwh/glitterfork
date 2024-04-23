@@ -21,3 +21,4 @@
 [submodule "Glitter/Vendor/entt"]
 	path = Glitter/Vendor/entt
 	url = https://github.com/skypjack/entt.git
+	branch = v3.13.x
