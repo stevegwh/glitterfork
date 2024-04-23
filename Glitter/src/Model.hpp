@@ -23,14 +23,13 @@ class Model
     Mesh processMesh(aiMesh *mesh, const aiScene *scene);
     std::vector<slib::texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName);
 public:
-    Transform* transform;
     std::vector<slib::texture> textures_loaded;
     std::vector<Mesh> meshes;
     std::string directory;
     bool gammaCorrection{};
     Shader* shader;
 
-    Model(Transform* _transform, std::string const &path, Shader* _shader);
+    Model(std::string const &path, Shader* _shader);
     ~Model();
     void Draw() const;
 };

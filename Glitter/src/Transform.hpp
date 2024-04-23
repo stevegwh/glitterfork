@@ -15,6 +15,5 @@ struct Transform
     glm::vec3 scale;
     [[nodiscard]] glm::mat4 GetMatrix() const;
     Transform(glm::vec3 _position, glm::vec3 _rotation, glm::vec3 _scale);
-    Transform() = default;
 };
 } //sage

@@ -111,20 +111,17 @@ void Application::initPhysics()
 void Application::initLevel()
 {
 
-//    auto entity = registry.create();
+    auto entity = registry.create();
 //    
 //    auto transform = registry.emplace<Transform>(entity, glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
-//    auto model = registry.emplace<Transform>(entity, Model(BINARY_PATH + "resources/spyrolevel.obj", 
-//                                                           new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"), 
-//                                                                      std::string(BINARY_PATH + "Shaders/shader.frag"))));
-    
 
-    
-    auto renderable = std::make_unique<Model>(new Transform(glm::vec3(0), glm::vec3(0), glm::vec3(0.1f)), BINARY_PATH + "resources/spyrolevel.obj", 
-                                                             new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"),
-                                                                std::string(BINARY_PATH + "Shaders/shader.frag"))
-                                                    );
-    renderer.AddRenderable(std::move(renderable));
+
+    registry.emplace<Transform>(entity, glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
+    registry.emplace<Model>(entity,
+                            BINARY_PATH + "resources/spyrolevel.obj",
+                            new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"),
+                                       std::string(BINARY_PATH + "Shaders/shader.frag")));
+
 }
 
 void Application::Run()
@@ -139,7 +136,7 @@ void Application::Run()
 
 Application::Application() :
     cam(Camera({0, 0, 5}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear)),
-    renderer(RendererGl(&cam))
+    renderer(RendererGl(&cam, &registry))
 {
     quit = false;
     initSDL();

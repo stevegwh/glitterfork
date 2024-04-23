@@ -25,24 +25,40 @@ void RendererGl::Render()
 {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (const auto& model: renderables) 
-    {
-        glm::mat4 modelMat = model->transform->GetMatrix();
-        glm::mat4 proj = glm::perspective(glm::radians(cam->fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, cam->zNear, cam->zFar);
-        glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
-        glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "projection"), 1, GL_FALSE, glm::value_ptr(proj));
-        glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "view"), 1, GL_FALSE, glm::value_ptr(cam->view));
-        model->Draw();
-    }
+    auto view = registry->view<const Model, Transform>();
+    view.each([_cam = cam](const auto& r, auto& t)
+              {
+                  glm::mat4 modelMat = t.GetMatrix();
+                  glm::mat4 proj = glm::perspective(glm::radians(_cam->fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, _cam->zNear, _cam->zFar);
+                  glUniformMatrix4fv(glGetUniformLocation(r.shader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
+                  glUniformMatrix4fv(glGetUniformLocation(r.shader->getID(), "projection"), 1, GL_FALSE, glm::value_ptr(proj));
+                  glUniformMatrix4fv(glGetUniformLocation(r.shader->getID(), "view"), 1, GL_FALSE, glm::value_ptr(_cam->view));
+                  r.Draw();
+              });
 }
+
+//void RendererGl::Render()
+//{
+//    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    for (const auto& model: renderables) 
+//    {
+//        glm::mat4 modelMat = model->transform->GetMatrix();
+//        glm::mat4 proj = glm::perspective(glm::radians(cam->fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, cam->zNear, cam->zFar);
+//        glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
+//        glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "projection"), 1, GL_FALSE, glm::value_ptr(proj));
+//        glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "view"), 1, GL_FALSE, glm::value_ptr(cam->view));
+//        model->Draw();
+//    }
+//}
 
 void RendererGl::cleanup()
 {
     
 }
 
-RendererGl::RendererGl(Camera* _cam) :
-    cam(_cam)
+RendererGl::RendererGl(Camera* _cam, entt::registry* _registry) :
+    registry(_registry), cam(_cam)
 {
 }
 
@@ -51,8 +67,8 @@ RendererGl::~RendererGl()
     cleanup();
 }
 
-void RendererGl::AddRenderable(std::unique_ptr<Model> renderable)
-{
-    renderables.push_back(std::move(renderable));
-}
+//void RendererGl::AddRenderable(std::unique_ptr<Model> renderable)
+//{
+//    renderables.push_back(std::move(renderable));
+//}
 } // sage

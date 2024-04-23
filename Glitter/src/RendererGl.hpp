@@ -16,14 +16,15 @@ namespace sage
 struct Camera;
 class RendererGl
 {
-    sage::Camera* cam;
+    entt::registry* registry;
+    Camera* cam;
     void cleanup();
-    std::vector<std::unique_ptr<Model>> renderables;
+    //std::vector<std::unique_ptr<Model>> renderables;
 public:
-    explicit RendererGl(Camera* _cam);
+    explicit RendererGl(Camera* _cam, entt::registry* _registry);
     ~RendererGl();
     void Render();
-    void AddRenderable(std::unique_ptr<Model> renderable);
+    //void AddRenderable(std::unique_ptr<Model> renderable);
 };
 
 } // sage
