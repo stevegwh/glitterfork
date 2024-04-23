@@ -4,13 +4,15 @@
 
 #pragma once
 
-#include <string>
-#include <memory>
-#include <SDL2/SDL.h>
-
 #include "RendererGl.hpp"
 #include "Camera.hpp"
 #include "utils.hpp"
+
+#include <string>
+#include <memory>
+
+#include <SDL2/SDL.h>
+#include <entt/entt.hpp>
 
 namespace sage
 {
@@ -24,9 +26,9 @@ class Application
     static constexpr float fov = 60;
     static constexpr unsigned long screenSize = SCREEN_WIDTH * SCREEN_HEIGHT;
 
-    sage::Camera cam;
+    entt::registry registry;
+    Camera cam;
     RendererGl renderer;
-    
     Clock clock;
     FPSCounter fpsCounter;
     SDL_Window* window{};

@@ -25,10 +25,9 @@ void RendererGl::Render()
 {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (const auto& renderable: renderables) 
+    for (const auto& model: renderables) 
     {
-        const auto& model = renderable->model;
-        glm::mat4 modelMat = renderable->transform->GetMatrix();
+        glm::mat4 modelMat = model->transform->GetMatrix();
         glm::mat4 proj = glm::perspective(glm::radians(cam->fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, cam->zNear, cam->zFar);
         glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
         glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "projection"), 1, GL_FALSE, glm::value_ptr(proj));
@@ -42,7 +41,7 @@ void RendererGl::cleanup()
     
 }
 
-RendererGl::RendererGl(sage::Camera* _cam) :
+RendererGl::RendererGl(Camera* _cam) :
     cam(_cam)
 {
 }
@@ -52,7 +51,7 @@ RendererGl::~RendererGl()
     cleanup();
 }
 
-void RendererGl::AddRenderable(std::unique_ptr<Renderable> renderable)
+void RendererGl::AddRenderable(std::unique_ptr<Model> renderable)
 {
     renderables.push_back(std::move(renderable));
 }

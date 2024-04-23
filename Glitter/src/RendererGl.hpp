@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include "Model.hpp"
+
 #include <string>
-#include "Renderable.hpp"
+
 #include <glad/glad.h>
+#include <entt/entt.hpp>
 
 namespace sage
 {
@@ -15,12 +18,12 @@ class RendererGl
 {
     sage::Camera* cam;
     void cleanup();
-    std::vector<std::unique_ptr<Renderable>> renderables;
+    std::vector<std::unique_ptr<Model>> renderables;
 public:
     explicit RendererGl(Camera* _cam);
     ~RendererGl();
     void Render();
-    void AddRenderable(std::unique_ptr<Renderable> renderable);
+    void AddRenderable(std::unique_ptr<Model> renderable);
 };
 
 } // sage

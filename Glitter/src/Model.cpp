@@ -227,8 +227,8 @@ Model::~Model()
     delete shader;
 }
 
-Model::Model(const std::string &path, Shader* _shader) :
-    shader(_shader)
+Model::Model(Transform* _transform, const std::string &path, Shader* _shader) :
+    transform(_transform), shader(_shader)
 {
     loadModel(path);
 }

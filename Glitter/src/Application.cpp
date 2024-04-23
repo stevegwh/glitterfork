@@ -3,18 +3,15 @@
 //
 
 #include "Application.hpp"
-
-
-#include <glad/glad.h>
-#include <memory>
-
 #include "Shader.hpp"
 #include "Model.hpp"
-#include "Renderable.hpp"
 #include "Transform.hpp"
 
+#include <memory>
 #include <iostream>
+
 #include <SDL2/SDL.h>
+#include <glad/glad.h>
 
 
 namespace sage
@@ -113,17 +110,20 @@ void Application::initPhysics()
 
 void Application::initLevel()
 {
-    //auto shader = std::make_unique<Shader>(std::string(BINARY_PATH + "Shaders/shader.vert"), std::string(BINARY_PATH + "Shaders/shader.frag"));
-    //auto model = std::make_unique<Model>(BINARY_PATH + "resources/spyrolevel.obj", std::move(shader));
+
+//    auto entity = registry.create();
+//    
+//    auto transform = registry.emplace<Transform>(entity, glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
+//    auto model = registry.emplace<Transform>(entity, Model(BINARY_PATH + "resources/spyrolevel.obj", 
+//                                                           new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"), 
+//                                                                      std::string(BINARY_PATH + "Shaders/shader.frag"))));
     
-    // MEMORY LEAK
-    auto* transform = new Transform(glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
-    // -----
+
     
-    auto renderable = std::make_unique<Renderable>(new Model(BINARY_PATH + "resources/spyrolevel.obj", new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"),
+    auto renderable = std::make_unique<Model>(new Transform(glm::vec3(0), glm::vec3(0), glm::vec3(0.1f)), BINARY_PATH + "resources/spyrolevel.obj", 
+                                                             new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"),
                                                                 std::string(BINARY_PATH + "Shaders/shader.frag"))
-                                                    ), 
-                                                    transform);
+                                                    );
     renderer.AddRenderable(std::move(renderable));
 }
 
