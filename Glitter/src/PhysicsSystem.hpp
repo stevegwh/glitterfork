@@ -6,12 +6,16 @@
 
 #include "btBulletDynamicsCommon.h"
 
+#include <entt/entt.hpp>
+
+#include <unordered_map>
 #include <memory>
 
 namespace sage
 {
 class PhysicsSystem
 {
+    entt::registry* registry;
     ///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
     std::unique_ptr<btDefaultCollisionConfiguration> collisionConfiguration;
     ///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
@@ -22,10 +26,14 @@ class PhysicsSystem
     std::unique_ptr<btSequentialImpulseConstraintSolver> solver;
     std::unique_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
 
+    std::unordered_map<int, entt::entity> entityIndices; // entity -> index in btAlignedObjectArray
     //make sure to re-use collision shapes among rigid bodies whenever possible!
     btAlignedObjectArray<btCollisionShape*> collisionShapes;
 public:
-    PhysicsSystem();
+    bool shouldUpdate = false;
+    PhysicsSystem(entt::registry* _registry);
     ~PhysicsSystem();
+    void Update();
+    void AddBoxObject(entt::entity entity);
 };
 } //sage

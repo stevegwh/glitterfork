@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "PhysicsSystem.hpp"
 #include "RendererGl.hpp"
 #include "Camera.hpp"
 #include "utils.hpp"
@@ -29,6 +30,7 @@ class Application
     entt::registry registry;
     Camera cam;
     RendererGl renderer;
+    PhysicsSystem physics;
     Clock clock;
     FPSCounter fpsCounter;
     SDL_Window* window{};

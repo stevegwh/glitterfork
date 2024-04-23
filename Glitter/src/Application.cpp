@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <iostream>
+#include <random>
 
 #include <SDL2/SDL.h>
 #include <glad/glad.h>
@@ -36,6 +37,12 @@ void Application::processInput()
             int width, height;
             SDL_GetWindowSize(window, &width, &height);
             glViewport(0, 0, width, height);
+        }
+
+        const Uint8 *keyState = SDL_GetKeyboardState(NULL);
+        if (keyState[SDL_SCANCODE_P]) 
+        {
+            physics.shouldUpdate = true;
         }
     }
 }
@@ -86,6 +93,7 @@ int Application::initSDL()
     //SDL_WarpMouseInWindow(window, SCR_WIDTH / 2, SCR_HEIGHT / 2);
 
     glEnable(GL_DEPTH_TEST);
+    return 1;
 }
 
 void Application::update()
@@ -95,6 +103,7 @@ void Application::update()
     //std::cout << fpsCounter.fps_current << std::endl;
     cam.Update(clock.delta);
     processInput();
+    physics.Update();
 }
 
 void Application::draw()
@@ -110,18 +119,30 @@ void Application::initPhysics()
 
 void Application::initLevel()
 {
-
-    auto entity = registry.create();
-//    
-//    auto transform = registry.emplace<Transform>(entity, glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
-
-
-    registry.emplace<Transform>(entity, glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
-    registry.emplace<Model>(entity,
-                            BINARY_PATH + "resources/spyrolevel.obj",
+    {
+    auto floor = registry.create();
+    registry.emplace<Transform>(floor, glm::vec3(0, -15, -10), glm::vec3(0, 35, 0), glm::vec3(40, 0.25, 40));
+    registry.emplace<Model>(floor,
+                            BINARY_PATH + "resources/cube_steve.obj",
                             new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"),
                                        std::string(BINARY_PATH + "Shaders/shader.frag")));
+    physics.AddBoxObject(floor);
+    }
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 zgen(rd()); // seed the generator
+    std::mt19937 xgen(rd());
+    std::uniform_int_distribution<> distr(-20, 20); // define the range
+    for (int i = 0; i < 20; ++i) 
+    {
+        auto entity = registry.create();
+        registry.emplace<Transform>(entity, glm::vec3(distr(xgen), 0, distr(zgen)), glm::vec3(0, 35.0f, 0), glm::vec3(1.0f), 1.0f);
+        registry.emplace<Model>(entity,
+                                BINARY_PATH + "resources/cube_steve.obj",
+                                new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"),
+                                           std::string(BINARY_PATH + "Shaders/shader.frag")));
 
+        physics.AddBoxObject(entity);
+    }
 }
 
 void Application::Run()
@@ -135,8 +156,9 @@ void Application::Run()
 }
 
 Application::Application() :
-    cam(Camera({0, 0, 5}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear)),
-    renderer(RendererGl(&cam, &registry))
+    cam(Camera({0, -2, 30}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear)),
+    renderer(RendererGl(&cam, &registry)),
+    physics(PhysicsSystem(&registry))
 {
     quit = false;
     initSDL();
