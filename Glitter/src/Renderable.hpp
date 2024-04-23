@@ -12,8 +12,8 @@ namespace sage
 {
 struct Renderable
 {
-    std::unique_ptr<Model> model;
+    Model* model;
     Transform* const transform;
-    Renderable(std::unique_ptr<Model> _model, Transform* _transform);
+    Renderable(Model* _model, Transform* _transform);
 };
 }

@@ -170,7 +170,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
     // return a mesh object created from the extracted mesh data
-    return Mesh(vertices, indices, textures);
+    return { vertices, indices, textures };
 }
 
 // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -213,19 +213,24 @@ void Model::loadModel(std::string const &path)
     processNode(scene->mRootNode, scene);
 }
 
-Model::Model(const std::string &path, std::unique_ptr<Shader> _shader) :
-    shader(std::move(_shader))
-{
-    loadModel(path);
-}
-
-void Model::Draw()
+void Model::Draw() const
 {
     shader->Use();
-    for(auto & mesh : meshes)
+    for(auto& mesh : meshes)
     {
         mesh.Draw(*shader);
     }
+}
+
+Model::~Model()
+{
+    delete shader;
+}
+
+Model::Model(const std::string &path, Shader* _shader) :
+    shader(_shader)
+{
+    loadModel(path);
 }
 
 } //sage

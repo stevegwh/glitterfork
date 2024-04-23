@@ -28,7 +28,7 @@ public:
     Mesh(const std::vector<slib::vertex>& vertices, 
          const std::vector<unsigned int>& indices, 
          const std::vector<slib::texture>& textures);
-    void Draw(Shader &shader);
+    void Draw(const Shader &shader) const;
 private:
     //  render data
     unsigned int VAO{}, VBO{}, EBO{};

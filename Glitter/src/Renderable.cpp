@@ -8,8 +8,8 @@ namespace sage
 {
 
 
-Renderable::Renderable(std::unique_ptr<Model> _model, sage::Transform *_transform) :
-    model(std::move(_model)),
+Renderable::Renderable(Model* _model, sage::Transform *_transform) :
+    model(_model),
     transform(_transform)
 {}
 }

@@ -95,7 +95,7 @@ void Application::update()
 {
     clock.tick();
     fpsCounter.Update();
-    std::cout << fpsCounter.fps_current << std::endl;
+    //std::cout << fpsCounter.fps_current << std::endl;
     cam.Update(clock.delta);
     processInput();
 }
@@ -113,14 +113,17 @@ void Application::initPhysics()
 
 void Application::initLevel()
 {
-    auto shader = std::make_unique<Shader>(std::string(BINARY_PATH + "Shaders/shader.vert"), std::string(BINARY_PATH + "Shaders/shader.frag"));
-    auto model = std::make_unique<Model>(BINARY_PATH + "resources/spyrolevel.obj", std::move(shader));
+    //auto shader = std::make_unique<Shader>(std::string(BINARY_PATH + "Shaders/shader.vert"), std::string(BINARY_PATH + "Shaders/shader.frag"));
+    //auto model = std::make_unique<Model>(BINARY_PATH + "resources/spyrolevel.obj", std::move(shader));
     
     // MEMORY LEAK
     auto* transform = new Transform(glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
     // -----
     
-    auto renderable = std::make_unique<Renderable>(std::move(model), transform);
+    auto renderable = std::make_unique<Renderable>(new Model(BINARY_PATH + "resources/spyrolevel.obj", new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"),
+                                                                std::string(BINARY_PATH + "Shaders/shader.frag"))
+                                                    ), 
+                                                    transform);
     renderer.AddRenderable(std::move(renderable));
 }
 

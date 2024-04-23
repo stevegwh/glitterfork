@@ -11,7 +11,7 @@ vertices(_vertices), indices(_indices), textures(_textures)
     setupMesh(); 
 }
 
-void Mesh::Draw(Shader &shader)
+void Mesh::Draw(const Shader& shader) const
 {
     // bind appropriate textures
     unsigned int diffuseNr  = 0;
@@ -35,7 +35,7 @@ void Mesh::Draw(Shader &shader)
             number = std::to_string(heightNr++); // transfer unsigned int to string
 
         // now set the sampler to the correct texture unit
-        glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), 0);
+        glUniform1i(glGetUniformLocation(shader.getID(), (name + number).c_str()), 0);
         // and finally bind the texture
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }

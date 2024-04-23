@@ -17,21 +17,19 @@
 namespace sage {
 class Model
 {
+    void loadModel(std::string const &path);
+    void processNode(aiNode *node, const aiScene *scene);
+    Mesh processMesh(aiMesh *mesh, const aiScene *scene);
+    std::vector<slib::texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName);
 public:
     std::vector<slib::texture> textures_loaded;
     std::vector<Mesh> meshes;
     std::string directory;
     bool gammaCorrection{};
-    std::unique_ptr<Shader> shader;
+    Shader* shader;
 
-    Model(std::string const &path, std::unique_ptr<Shader> _shader);
-    void Draw();
-
-private:
-
-    void loadModel(std::string const &path);
-    void processNode(aiNode *node, const aiScene *scene);
-    Mesh processMesh(aiMesh *mesh, const aiScene *scene);
-    std::vector<slib::texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName);
+    Model(std::string const &path, Shader* _shader);
+    ~Model();
+    void Draw() const;
 };
 } // sage

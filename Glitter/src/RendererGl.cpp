@@ -27,12 +27,12 @@ void RendererGl::Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (const auto& renderable: renderables) 
     {
-        auto* model = renderable->model.get();
+        const auto& model = renderable->model;
         glm::mat4 modelMat = renderable->transform->GetMatrix();
         glm::mat4 proj = glm::perspective(glm::radians(cam->fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, cam->zNear, cam->zFar);
-        glUniformMatrix4fv(glGetUniformLocation(model->shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
-        glUniformMatrix4fv(glGetUniformLocation(model->shader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
-        glUniformMatrix4fv(glGetUniformLocation(model->shader->ID, "view"), 1, GL_FALSE, glm::value_ptr(cam->view));
+        glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
+        glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "projection"), 1, GL_FALSE, glm::value_ptr(proj));
+        glUniformMatrix4fv(glGetUniformLocation(model->shader->getID(), "view"), 1, GL_FALSE, glm::value_ptr(cam->view));
         model->Draw();
     }
 }

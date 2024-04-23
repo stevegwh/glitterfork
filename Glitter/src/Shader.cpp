@@ -11,6 +11,7 @@
 
 namespace sage
 {
+
 std::string Shader::ReadShaderFile(const std::string &path)
 {
     std::stringstream ss;
@@ -24,18 +25,16 @@ std::string Shader::ReadShaderFile(const std::string &path)
     file.close(); // for good luck
     return ss.str();;
 }
-Shader::Shader(const std::string &vertexShaderPath, const std::string &fragmentShaderPath)
-    : vertexShader(ReadShaderFile(vertexShaderPath)), fragShader(ReadShaderFile(fragmentShaderPath))
-{
-    Compile();
-}
-void Shader::Compile()
-{
 
-// 2. compile shaders
+void Shader::Compile(const std::string &vertexShaderPath, const std::string &fragmentShaderPath)
+{
+    std::string vertexShader = ReadShaderFile(vertexShaderPath);
+    std::string fragShader = ReadShaderFile(fragmentShaderPath);
+    // 2. compile shaders
     unsigned int vertex, fragment;
     int success;
     char infoLog[512];
+
 
 // vertex Shader
     const char* vShader = vertexShader.c_str();
@@ -85,23 +84,37 @@ void Shader::setBool(const std::string &name, bool value) const
 {
     glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
 }
+
 void Shader::setInt(const std::string &name, int value) const
 {
     glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 }
+
 void Shader::setFloat(const std::string &name, float value) const
 {
     glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
 
-void Shader::Use()
+unsigned int Shader::getID() const
+{
+    return ID;
+}
+
+void Shader::Use() const
 {
     glUseProgram(ID);
 }
+
 Shader::~Shader()
 {
     glDeleteProgram(ID);
 }
+
+Shader::Shader(const std::string &vertexShaderPath, const std::string &fragmentShaderPath)
+{
+    Compile(vertexShaderPath, fragmentShaderPath);
+}
+
 } //sage
 
 
