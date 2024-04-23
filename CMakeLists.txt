@@ -24,8 +24,6 @@ else()
     endif()
 endif()
 
-find_package(SDL2 REQUIRED)
-
 #include(FetchContent)
 #FetchContent_Declare(
 #        entt
@@ -34,7 +32,14 @@ find_package(SDL2 REQUIRED)
 #)
 #FetchContent_MakeAvailable(entt)
 
-include_directories(Glitter/Vendor/assimp/include/
+
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost REQUIRED)
+find_package(SDL2 REQUIRED)
+
+include_directories(${Boost_INCLUDE_DIRS}
+                    Glitter/Vendor/assimp/include/
                     Glitter/Vendor/bullet/src/
                     Glitter/Vendor/glad/include/
                     Glitter/Vendor/glm/
@@ -60,12 +65,14 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
+
 add_definitions(-DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
 target_link_libraries(${PROJECT_NAME} 
         assimp
+        ${Boost_LIBRARIES}
         ${SDL2_LIBRARIES}
         ${GLAD_LIBRARIES} 
         BulletDynamics 

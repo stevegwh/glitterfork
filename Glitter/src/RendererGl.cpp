@@ -25,14 +25,14 @@ void RendererGl::Render()
 {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    auto view = registry->view<const Model, Transform>();
-    view.each([_cam = cam](const auto& r, auto& t)
+    auto view = registry->view<const Model, const Transform>();
+    view.each([this](const auto& r, auto& t)
               {
                   glm::mat4 modelMat = t.GetMatrix();
-                  glm::mat4 proj = glm::perspective(glm::radians(_cam->fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, _cam->zNear, _cam->zFar);
+                  glm::mat4 proj = glm::perspective(glm::radians(cam->fov), (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, cam->zNear, cam->zFar);
                   glUniformMatrix4fv(glGetUniformLocation(r.shader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(modelMat));
                   glUniformMatrix4fv(glGetUniformLocation(r.shader->getID(), "projection"), 1, GL_FALSE, glm::value_ptr(proj));
-                  glUniformMatrix4fv(glGetUniformLocation(r.shader->getID(), "view"), 1, GL_FALSE, glm::value_ptr(_cam->view));
+                  glUniformMatrix4fv(glGetUniformLocation(r.shader->getID(), "view"), 1, GL_FALSE, glm::value_ptr(cam->view));
                   r.Draw();
               });
 }

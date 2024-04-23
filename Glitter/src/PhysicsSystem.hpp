@@ -7,12 +7,17 @@
 #include "btBulletDynamicsCommon.h"
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 
-#include <unordered_map>
 #include <memory>
 
 namespace sage
 {
+struct PhysicsObject
+{
+    entt::entity entityId;
+    btRigidBody* rigidBody;
+};
 class PhysicsSystem
 {
     entt::registry* registry;
@@ -25,15 +30,15 @@ class PhysicsSystem
     ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
     std::unique_ptr<btSequentialImpulseConstraintSolver> solver;
     std::unique_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
-
-    std::unordered_map<int, entt::entity> entityIndices; // entity -> index in btAlignedObjectArray
     //make sure to re-use collision shapes among rigid bodies whenever possible!
     btAlignedObjectArray<btCollisionShape*> collisionShapes;
+    //std::vector<btRigidBody*> rigidBodies; // temporary until i find out how to access rigidbodies from the dynamic world
 public:
     bool shouldUpdate = false;
     PhysicsSystem(entt::registry* _registry);
     ~PhysicsSystem();
     void Update();
     void AddBoxObject(entt::entity entity);
+    void ApplyImpulse(const glm::vec3& origin, const glm::vec3& impulse);
 };
 } //sage

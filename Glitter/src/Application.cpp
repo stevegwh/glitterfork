@@ -42,7 +42,8 @@ void Application::processInput()
         const Uint8 *keyState = SDL_GetKeyboardState(NULL);
         if (keyState[SDL_SCANCODE_P]) 
         {
-            physics.shouldUpdate = true;
+            std::cout << "Bombs away!" << std::endl;
+            physics.ApplyImpulse({0,0,0}, {100,0,100});
         }
     }
 }

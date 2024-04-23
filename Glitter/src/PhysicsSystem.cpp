@@ -8,14 +8,15 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#include <iostream>
+
 namespace sage
 {
 
 void PhysicsSystem::Update()
 {
-    if (!shouldUpdate) return;
     dynamicsWorld->stepSimulation(1.f / 60.f, 10);
-
+    
     //print positions of all objects
     for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
     {
@@ -30,14 +31,16 @@ void PhysicsSystem::Update()
         {
             trans = obj->getWorldTransform();
         }
-        // TODO: Instead of printing, you want to update the entt transforms
-        auto enttTrans = registry->get<Transform>(entityIndices[j]);
+        
+        // TODO: would crash currently if no rigidbody
+
+        auto entity = static_cast<entt::entity>(reinterpret_cast<uintptr_t>(obj->getUserPointer()));
         auto euler = glm::vec3();
         trans.getRotation().getEulerZYX(euler.z, euler.y, euler.x);
-        registry->patch<Transform>(entityIndices[j], [n= trans, e = euler](auto &t) { 
-            t.position.x = n.getOrigin().getX(); 
-            t.position.y = n.getOrigin().getY();
-            t.position.z = n.getOrigin().getZ();
+        registry->patch<Transform>(entity, [n= trans, e = euler](auto &t) { 
+            t.position.x = n.getOrigin().x(); 
+            t.position.y = n.getOrigin().y();
+            t.position.z = n.getOrigin().z();
 //            t.scale.x = old.scale.x; 
 //            t.scale.y = old.scale.y; 
 //            t.scale.z = old.scale.z;
@@ -50,29 +53,49 @@ void PhysicsSystem::Update()
     }
 }
 
+void PhysicsSystem::ApplyImpulse(const glm::vec3& origin, const glm::vec3& impulse)
+{
+
+    for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
+    {
+        btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[j];
+        btRigidBody* body = btRigidBody::upcast(obj);
+        if (body && body->getInvMass() != 0.0f) // Check if the body is dynamic
+        {
+            std::cout << "Bombs away!" << std::endl;
+            btTransform trans;
+            body->getMotionState()->getWorldTransform(trans);
+
+            btVector3 relativePosition = trans.getOrigin() - btVector3(origin.x, origin.y, origin.z);
+
+            // Convert the impulse from glm::vec3 to btVector3
+            btVector3 btImpulse(impulse.x, impulse.y, impulse.z);
+
+            body->applyImpulse(btImpulse, relativePosition);
+        }
+    }
+}
+
 void PhysicsSystem::AddBoxObject(entt::entity entity)
 {
-    
     auto transform = registry->get<Transform>(entity);
-    // TODO: Initialise a bullet object and add it in
-
-    btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(transform.scale.x), 
+    
+    btCollisionShape* colShape = new btBoxShape(btVector3(btScalar(transform.scale.x), 
                                                              btScalar(transform.scale.y), 
                                                              btScalar(transform.scale.z)));
     
-    entityIndices[collisionShapes.size()] = entity;
-    collisionShapes.push_back(groundShape);
+    collisionShapes.push_back(colShape);
 
-    btTransform groundTransform;
-    groundTransform.setIdentity();
-    groundTransform.setOrigin(btVector3(transform.position.x, 
+    btTransform physicsTransform;
+    physicsTransform.setIdentity();
+    physicsTransform.setOrigin(btVector3(transform.position.x, 
                                         transform.position.y, 
                                         transform.position.z));
     btQuaternion quat;
     quat.setEulerZYX(btScalar(glm::radians(transform.rotation.z)),
                      btScalar(glm::radians(transform.rotation.y)),
                      btScalar(glm::radians(transform.rotation.x)));
-    groundTransform.setRotation(quat);
+    physicsTransform.setRotation(quat);
     
 
     btScalar mass(transform.mass);
@@ -83,17 +106,21 @@ void PhysicsSystem::AddBoxObject(entt::entity entity)
     btVector3 localInertia(0, 0, 0);
     if (isDynamic)
     {
-        groundShape->calculateLocalInertia(mass, localInertia);
+        colShape->calculateLocalInertia(mass, localInertia);
     }
     
     //using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-    auto* myMotionState = new btDefaultMotionState(groundTransform);
-    btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
+    auto* myMotionState = new btDefaultMotionState(physicsTransform);
+    btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
     auto* body = new btRigidBody(rbInfo);
-
+    
+    // store ECS entity ID of the associated transform/gameobject
+    body->setUserPointer(reinterpret_cast<void*>(static_cast<uintptr_t>(entity)));
+    
+    registry->emplace<PhysicsObject>(entity, entity, body);
+    
     //add the body to the dynamics world
     dynamicsWorld->addRigidBody(body);
-    
 }
 
 PhysicsSystem::PhysicsSystem(entt::registry* _registry) :
@@ -104,68 +131,7 @@ PhysicsSystem::PhysicsSystem(entt::registry* _registry) :
     solver(std::make_unique<btSequentialImpulseConstraintSolver>()),
     dynamicsWorld(std::make_unique<btDiscreteDynamicsWorld>(dispatcher.get(), overlappingPairCache, solver.get(), collisionConfiguration.get()))
 {
-    //int i;
     dynamicsWorld->setGravity(btVector3(0, -1, 0));
-
-    ///create a few basic rigid bodies
-
-//    //the ground is a cube of size 100 at position y = -56.
-//    //the sphere will hit it at y = -6, with center at -5
-//    {
-//        btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
-//
-//        collisionShapes.push_back(groundShape);
-//
-//        btTransform groundTransform;
-//        groundTransform.setIdentity();
-//        groundTransform.setOrigin(btVector3(0, -56, 0));
-//
-//        btScalar mass(0.);
-//
-//        //rigidbody is dynamic if and only if mass is non zero, otherwise static
-//        bool isDynamic = (mass != 0.f);
-//
-//        btVector3 localInertia(0, 0, 0);
-//        if (isDynamic)
-//            groundShape->calculateLocalInertia(mass, localInertia);
-//
-//        //using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-//        auto* myMotionState = new btDefaultMotionState(groundTransform);
-//        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-//        auto* body = new btRigidBody(rbInfo);
-//
-//        //add the body to the dynamics world
-//        dynamicsWorld->addRigidBody(body);
-//    }
-//
-//    {
-//        //create a dynamic rigidbody
-//        //btCollisionShape* colShape = new btBoxShape(btVector3(1,1,1));
-//        btCollisionShape* colShape = new btSphereShape(btScalar(1.));
-//        collisionShapes.push_back(colShape);
-//
-//        /// Create Dynamic Objects
-//        btTransform startTransform;
-//        startTransform.setIdentity();
-//
-//        btScalar mass(1.f);
-//
-//        //rigidbody is dynamic if and only if mass is non zero, otherwise static
-//        bool isDynamic = (mass != 0.f);
-//
-//        btVector3 localInertia(0, 0, 0);
-//        if (isDynamic)
-//            colShape->calculateLocalInertia(mass, localInertia);
-//
-//        startTransform.setOrigin(btVector3(2, 10, 0));
-//
-//        //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-//        auto* myMotionState = new btDefaultMotionState(startTransform);
-//        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
-//        auto* body = new btRigidBody(rbInfo);
-//
-//        dynamicsWorld->addRigidBody(body);
-//    }
 }
 
 PhysicsSystem::~PhysicsSystem()
