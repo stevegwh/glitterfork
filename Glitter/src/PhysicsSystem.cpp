@@ -5,6 +5,9 @@
 #include "PhysicsSystem.hpp"
 #include "Transform.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 namespace sage
 {
 
@@ -29,17 +32,19 @@ void PhysicsSystem::Update()
         }
         // TODO: Instead of printing, you want to update the entt transforms
         auto enttTrans = registry->get<Transform>(entityIndices[j]);
-        registry->patch<Transform>(entityIndices[j], [n = trans](auto &t) { 
+        auto euler = glm::vec3();
+        trans.getRotation().getEulerZYX(euler.z, euler.y, euler.x);
+        registry->patch<Transform>(entityIndices[j], [n= trans, e = euler](auto &t) { 
             t.position.x = n.getOrigin().getX(); 
             t.position.y = n.getOrigin().getY();
             t.position.z = n.getOrigin().getZ();
-//            t.scale.x = 1; 
-//            t.scale.y = 1; 
-//            t.scale.z = 1;
-            t.rotation.x = n.getRotation().getX(); 
-            t.rotation.y = n.getRotation().getY(); 
-            t.rotation.z = n.getRotation().getZ();
-            //t.mass = t.mass;
+//            t.scale.x = old.scale.x; 
+//            t.scale.y = old.scale.y; 
+//            t.scale.z = old.scale.z;
+            t.rotation.x = glm::degrees(e.x);
+            t.rotation.y = glm::degrees(e.y);
+            t.rotation.z = glm::degrees(e.z);
+//            t.mass = old.mass;
         });
         //printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
     }
@@ -63,6 +68,12 @@ void PhysicsSystem::AddBoxObject(entt::entity entity)
     groundTransform.setOrigin(btVector3(transform.position.x, 
                                         transform.position.y, 
                                         transform.position.z));
+    btQuaternion quat;
+    quat.setEulerZYX(btScalar(glm::radians(transform.rotation.z)),
+                     btScalar(glm::radians(transform.rotation.y)),
+                     btScalar(glm::radians(transform.rotation.x)));
+    groundTransform.setRotation(quat);
+    
 
     btScalar mass(transform.mass);
 
