@@ -213,18 +213,18 @@ void Model::loadModel(std::string const &path)
     processNode(scene->mRootNode, scene);
 }
 
-Model::Model(const std::string &path, const Shader& _shader) :
-    shader(_shader)
+Model::Model(const std::string &path, std::unique_ptr<Shader> _shader) :
+    shader(std::move(_shader))
 {
     loadModel(path);
 }
 
 void Model::Draw()
 {
-    shader.Use();
+    shader->Use();
     for(auto & mesh : meshes)
     {
-        mesh.Draw(shader);
+        mesh.Draw(*shader);
     }
 }
 

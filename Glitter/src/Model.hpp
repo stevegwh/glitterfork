@@ -1,9 +1,6 @@
 #pragma once
 
 #include <glad/glad.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -14,6 +11,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 
 namespace sage {
@@ -24,9 +22,9 @@ public:
     std::vector<Mesh> meshes;
     std::string directory;
     bool gammaCorrection{};
-    Shader shader;
+    std::unique_ptr<Shader> shader;
 
-    Model(std::string const &path, const Shader& _shader);
+    Model(std::string const &path, std::unique_ptr<Shader> _shader);
     void Draw();
 
 private:

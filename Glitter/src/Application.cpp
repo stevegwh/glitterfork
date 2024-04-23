@@ -11,6 +11,7 @@
 #include "Shader.hpp"
 #include "Model.hpp"
 #include "Renderable.hpp"
+#include "Transform.hpp"
 
 #include <iostream>
 #include <SDL2/SDL.h>
@@ -105,14 +106,27 @@ void Application::draw()
     SDL_GL_SwapWindow(window);
 }
 
+void Application::initPhysics()
+{
+    
+}
+
+void Application::initLevel()
+{
+    auto shader = std::make_unique<Shader>(std::string(BINARY_PATH + "Shaders/shader.vert"), std::string(BINARY_PATH + "Shaders/shader.frag"));
+    auto model = std::make_unique<Model>(BINARY_PATH + "resources/spyrolevel.obj", std::move(shader));
+    
+    // MEMORY LEAK
+    auto* transform = new Transform(glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
+    // -----
+    
+    auto renderable = std::make_unique<Renderable>(std::move(model), transform);
+    renderer.AddRenderable(std::move(renderable));
+}
+
 void Application::Run()
 {
-    // SDL2: initialize and configure
-    sage::Shader shader(std::string(BINARY_PATH + "Shaders/shader.vert"), std::string(BINARY_PATH + "Shaders/shader.frag"));
-    auto model = std::make_unique<Model>(BINARY_PATH + "resources/level.obj", shader);
-    auto renderable = std::make_unique<Renderable>(std::move(model), glm::vec3(0), glm::vec3(0), glm::vec3(1.0f));
-    renderer.AddRenderable(std::move(renderable));
-    
+    initLevel();
     while (!quit)
     {
         update();
@@ -121,7 +135,7 @@ void Application::Run()
 }
 
 Application::Application() :
-    cam(sage::Camera({0, 0, 5}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear)),
+    cam(Camera({0, 0, 5}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear)),
     renderer(RendererGl(&cam))
 {
     quit = false;

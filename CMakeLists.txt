@@ -13,6 +13,8 @@ option(BUILD_OPENGL3_DEMOS OFF)
 option(BUILD_UNIT_TESTS OFF)
 add_subdirectory(Glitter/Vendor/bullet)
 
+add_subdirectory(Glitter/Vendor/entt)
+
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 else()
@@ -24,11 +26,20 @@ endif()
 
 find_package(SDL2 REQUIRED)
 
+#include(FetchContent)
+#FetchContent_Declare(
+#        entt
+#        GIT_REPOSITORY https://github.com/skypjack/entt.git
+#        GIT_TAG        78213075654a688e9da6bc49f7f873d25c26d12c # EnTT v3.13.2
+#)
+#FetchContent_MakeAvailable(entt)
+
 include_directories(Glitter/Vendor/assimp/include/
                     Glitter/Vendor/bullet/src/
                     Glitter/Vendor/glad/include/
                     Glitter/Vendor/glm/
                     Glitter/Vendor/stb/
+                    Glitter/Vendor/entt
                     ${SDL_INCLUDE_DIR})
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
@@ -59,7 +70,8 @@ target_link_libraries(${PROJECT_NAME}
         ${GLAD_LIBRARIES} 
         BulletDynamics 
         BulletCollision 
-        LinearMath)
+        LinearMath
+        EnTT::EnTT)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 

@@ -18,3 +18,6 @@
     path = Glitter/Vendor/bullet
     url = https://github.com/bulletphysics/bullet3.git
     branch = master
+[submodule "Glitter/Vendor/entt"]
+	path = Glitter/Vendor/entt
+	url = https://github.com/skypjack/entt.git

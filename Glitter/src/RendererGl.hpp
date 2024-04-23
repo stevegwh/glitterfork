@@ -5,21 +5,19 @@
 #pragma once
 
 #include <string>
-#include "Camera.hpp"
 #include "Renderable.hpp"
 #include <glad/glad.h>
 
 namespace sage
 {
-
+struct Camera;
 class RendererGl
 {
     sage::Camera* cam;
-    bool firstMouse = true;
     void cleanup();
     std::vector<std::unique_ptr<Renderable>> renderables;
 public:
-    RendererGl(sage::Camera* _cam);
+    explicit RendererGl(Camera* _cam);
     ~RendererGl();
     void Render();
     void AddRenderable(std::unique_ptr<Renderable> renderable);

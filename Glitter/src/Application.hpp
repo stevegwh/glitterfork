@@ -14,7 +14,6 @@
 
 namespace sage
 {
-
 class Application
 {
     static constexpr double SCREEN_WIDTH = 1280;
@@ -30,11 +29,13 @@ class Application
     
     Clock clock;
     FPSCounter fpsCounter;
-    SDL_Window* window;
-    SDL_GLContext context;
+    SDL_Window* window{};
+    SDL_GLContext context{};
 
     bool quit;
     int initSDL();
+    void initPhysics();
+    void initLevel();
     void processInput();
     void update();
     void draw();
