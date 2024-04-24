@@ -24,13 +24,15 @@ else()
     endif()
 endif()
 
-#include(FetchContent)
-#FetchContent_Declare(
-#        entt
-#        GIT_REPOSITORY https://github.com/skypjack/entt.git
-#        GIT_TAG        78213075654a688e9da6bc49f7f873d25c26d12c # EnTT v3.13.2
-#)
-#FetchContent_MakeAvailable(entt)
+include(FetchContent)
+FetchContent_Declare(
+        JoltPhysics
+        GIT_REPOSITORY "https://github.com/jrouwe/JoltPhysics"
+        GIT_TAG "v5.0.0"
+        SOURCE_SUBDIR "Build"
+)
+FetchContent_MakeAvailable(JoltPhysics)
+
 
 
 set(Boost_USE_STATIC_LIBS OFF)
@@ -39,6 +41,7 @@ find_package(Boost REQUIRED)
 find_package(SDL2 REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS}
+                    ${JoltPhysics_SOURCE_DIR}/..
                     Glitter/Vendor/assimp/include/
                     Glitter/Vendor/bullet/src/
                     Glitter/Vendor/glad/include/
@@ -72,6 +75,7 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${VENDORS_SOURCES})
 target_link_libraries(${PROJECT_NAME} 
         assimp
+        Jolt
         ${Boost_LIBRARIES}
         ${SDL2_LIBRARIES}
         ${GLAD_LIBRARIES} 

@@ -5,15 +5,23 @@
 
 #include <glad/glad.h>
 
+// STL
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
+
+
+static std::unordered_map<std::string, std::string> filesRead;
 
 namespace sage
 {
-
 std::string Shader::ReadShaderFile(const std::string &path)
 {
+    if (filesRead.find(path) != filesRead.end())
+    {
+        return filesRead[path];
+    }
     std::stringstream ss;
     std::ifstream file;
     file.open(path);
@@ -23,6 +31,7 @@ std::string Shader::ReadShaderFile(const std::string &path)
     }
     ss << file.rdbuf();
     file.close(); // for good luck
+    filesRead[path] = ss.str();
     return ss.str();;
 }
 

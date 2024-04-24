@@ -2,7 +2,7 @@
 // Created by Steve Wheeler on 23/04/2024.
 //
 
-#include "PhysicsSystem.hpp"
+#include "bPhysicsSystem.hpp"
 #include "Transform.hpp"
 
 #include <glm/glm.hpp>
@@ -13,7 +13,7 @@
 namespace sage
 {
 
-void PhysicsSystem::Update()
+void bPhysicsSystem::Update()
 {
     dynamicsWorld->stepSimulation(1.f / 60.f, 10);
     
@@ -25,6 +25,7 @@ void PhysicsSystem::Update()
         btTransform trans;
         if (body && body->getMotionState())
         {
+            
             body->getMotionState()->getWorldTransform(trans);
         }
         else
@@ -47,13 +48,13 @@ void PhysicsSystem::Update()
             t.rotation.x = glm::degrees(e.x);
             t.rotation.y = glm::degrees(e.y);
             t.rotation.z = glm::degrees(e.z);
-//            t.mass = old.mass;
+            t.mass = 1.0f;
         });
         //printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
     }
 }
 
-void PhysicsSystem::ApplyImpulse(const glm::vec3& origin, const glm::vec3& impulse)
+void bPhysicsSystem::ApplyImpulse(const glm::vec3& origin, const glm::vec3& impulse)
 {
 
     for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
@@ -76,7 +77,7 @@ void PhysicsSystem::ApplyImpulse(const glm::vec3& origin, const glm::vec3& impul
     }
 }
 
-void PhysicsSystem::AddBoxObject(entt::entity entity)
+void bPhysicsSystem::AddBoxObject(entt::entity entity)
 {
     auto transform = registry->get<Transform>(entity);
     
@@ -123,7 +124,7 @@ void PhysicsSystem::AddBoxObject(entt::entity entity)
     dynamicsWorld->addRigidBody(body);
 }
 
-PhysicsSystem::PhysicsSystem(entt::registry* _registry) :
+bPhysicsSystem::bPhysicsSystem(entt::registry* _registry) :
     registry(_registry),
     collisionConfiguration(std::make_unique<btDefaultCollisionConfiguration>()), 
     dispatcher(std::make_unique<btCollisionDispatcher>(collisionConfiguration.get())),
@@ -134,7 +135,7 @@ PhysicsSystem::PhysicsSystem(entt::registry* _registry) :
     dynamicsWorld->setGravity(btVector3(0, -1, 0));
 }
 
-PhysicsSystem::~PhysicsSystem()
+bPhysicsSystem::~bPhysicsSystem()
 {
     delete overlappingPairCache;
 
@@ -158,7 +159,6 @@ PhysicsSystem::~PhysicsSystem()
         collisionShapes[j] = 0;
         delete shape;
     }
-
 
     //next line is optional: it will be cleared by the destructor when the array goes out of scope
     collisionShapes.clear();

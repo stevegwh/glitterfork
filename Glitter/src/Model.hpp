@@ -30,7 +30,6 @@ public:
     Shader* shader;
 
     Model(std::string const &path, Shader* _shader);
-    ~Model();
     void Draw() const;
 };
 } // sage

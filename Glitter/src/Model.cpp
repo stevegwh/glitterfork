@@ -4,8 +4,11 @@
 // Based on code from: https://learnopengl.com/Model-Loading/Model
 
 #include "Model.hpp"
+
+// Vendor
 #include <stb_image.h>
 
+// STL
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -220,11 +223,6 @@ void Model::Draw() const
     {
         mesh.Draw(*shader);
     }
-}
-
-Model::~Model()
-{
-    delete shader;
 }
 
 Model::Model(const std::string &path, Shader* _shader) :

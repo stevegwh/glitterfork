@@ -18,7 +18,7 @@ struct PhysicsObject
     entt::entity entityId;
     btRigidBody* rigidBody;
 };
-class PhysicsSystem
+class bPhysicsSystem
 {
     entt::registry* registry;
     ///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
@@ -32,11 +32,10 @@ class PhysicsSystem
     std::unique_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
     //make sure to re-use collision shapes among rigid bodies whenever possible!
     btAlignedObjectArray<btCollisionShape*> collisionShapes;
-    //std::vector<btRigidBody*> rigidBodies; // temporary until i find out how to access rigidbodies from the dynamic world
 public:
     bool shouldUpdate = false;
-    PhysicsSystem(entt::registry* _registry);
-    ~PhysicsSystem();
+    explicit bPhysicsSystem(entt::registry* _registry);
+    ~bPhysicsSystem();
     void Update();
     void AddBoxObject(entt::entity entity);
     void ApplyImpulse(const glm::vec3& origin, const glm::vec3& impulse);
