@@ -4,6 +4,7 @@
 
 #include "bPhysicsSystem.hpp"
 #include "Transform.hpp"
+#include "bPhysicsCustomMotionState.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -13,10 +14,13 @@
 namespace sage
 {
 
-void bPhysicsSystem::Update()
+void bPhysicsSystem::StepSimulation()
 {
     dynamicsWorld->stepSimulation(1.f / 60.f, 10);
-    
+}
+
+void bPhysicsSystem::Update(float deltaTime)
+{
     //print positions of all objects
     for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
     {
@@ -25,15 +29,13 @@ void bPhysicsSystem::Update()
         btTransform trans;
         if (body && body->getMotionState())
         {
-            
+
             body->getMotionState()->getWorldTransform(trans);
         }
         else
         {
             trans = obj->getWorldTransform();
         }
-        
-        // TODO: would crash currently if no rigidbody
 
         auto entity = static_cast<entt::entity>(reinterpret_cast<uintptr_t>(obj->getUserPointer()));
         auto euler = glm::vec3();
@@ -56,12 +58,10 @@ void bPhysicsSystem::Update()
 
 void bPhysicsSystem::ApplyImpulse(const glm::vec3& origin, const glm::vec3& impulse)
 {
-
-    for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
+    
+    for (auto& body: bodies) 
     {
-        btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[j];
-        btRigidBody* body = btRigidBody::upcast(obj);
-        if (body && body->getInvMass() != 0.0f) // Check if the body is dynamic
+        if (body->getInvMass() != 0.0f)
         {
             std::cout << "Bombs away!" << std::endl;
             btTransform trans;
@@ -71,8 +71,9 @@ void bPhysicsSystem::ApplyImpulse(const glm::vec3& origin, const glm::vec3& impu
 
             // Convert the impulse from glm::vec3 to btVector3
             btVector3 btImpulse(impulse.x, impulse.y, impulse.z);
-
             body->applyImpulse(btImpulse, relativePosition);
+            auto entity = static_cast<entt::entity>(reinterpret_cast<uintptr_t>(body->getUserPointer()));
+            // Do something here.
         }
     }
 }
@@ -111,17 +112,16 @@ void bPhysicsSystem::AddBoxObject(entt::entity entity)
     }
     
     //using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-    auto* myMotionState = new btDefaultMotionState(physicsTransform);
+//    auto* myMotionState = new btDefaultMotionState(physicsTransform);
+    auto* myMotionState = new bPhysicsCustomMotionState(physicsTransform);
     btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
     auto* body = new btRigidBody(rbInfo);
     
     // store ECS entity ID of the associated transform/gameobject
     body->setUserPointer(reinterpret_cast<void*>(static_cast<uintptr_t>(entity)));
-    
-    registry->emplace<PhysicsObject>(entity, entity, body);
-    
     //add the body to the dynamics world
     dynamicsWorld->addRigidBody(body);
+    bodies.push_back(body);
 }
 
 bPhysicsSystem::bPhysicsSystem(entt::registry* _registry) :

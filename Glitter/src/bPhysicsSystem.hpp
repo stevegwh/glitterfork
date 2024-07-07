@@ -10,14 +10,10 @@
 #include <glm/glm.hpp>
 
 #include <memory>
+#include <utility>
 
 namespace sage
 {
-struct PhysicsObject
-{
-    entt::entity entityId;
-    btRigidBody* rigidBody;
-};
 class bPhysicsSystem
 {
     entt::registry* registry;
@@ -32,11 +28,13 @@ class bPhysicsSystem
     std::unique_ptr<btDiscreteDynamicsWorld> dynamicsWorld;
     //make sure to re-use collision shapes among rigid bodies whenever possible!
     btAlignedObjectArray<btCollisionShape*> collisionShapes;
+    std::vector<btRigidBody*> bodies;
 public:
     bool shouldUpdate = false;
     explicit bPhysicsSystem(entt::registry* _registry);
     ~bPhysicsSystem();
-    void Update();
+    void Update(float deltaTime);
+    void StepSimulation();
     void AddBoxObject(entt::entity entity);
     void ApplyImpulse(const glm::vec3& origin, const glm::vec3& impulse);
 };

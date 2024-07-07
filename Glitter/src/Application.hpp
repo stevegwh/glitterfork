@@ -30,7 +30,7 @@ class Application
     entt::registry registry;
     Camera cam;
     RendererGl renderer;
-    bPhysicsSystem physics;
+    //bPhysicsSystem physics;
     Clock clock;
     FPSCounter fpsCounter;
     SDL_Window* window{};

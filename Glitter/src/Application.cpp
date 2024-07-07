@@ -17,6 +17,7 @@
 
 namespace sage
 {
+bool applyImpulse;
 // process all input: query SDL2 whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void Application::processInput()
@@ -43,7 +44,7 @@ void Application::processInput()
         if (keyState[SDL_SCANCODE_P]) 
         {
             std::cout << "Bombs away!" << std::endl;
-            physics.ApplyImpulse({0,0,0}, {100,0,100});
+            applyImpulse = true;
         }
     }
 }
@@ -101,10 +102,19 @@ void Application::update()
 {
     clock.tick();
     fpsCounter.Update();
+    //physics.StepSimulation();
+    processInput();
+//    physics.Update(clock.delta);
+//    if (applyImpulse)
+//    {
+//        physics.ApplyImpulse({0,0,0}, {1,-10,1});
+//    }
+
+
     //std::cout << fpsCounter.fps_current << std::endl;
     cam.Update(clock.delta);
-    processInput();
-    physics.Update();
+
+    
 }
 
 void Application::draw()
@@ -128,23 +138,31 @@ void Application::initLevel()
                             BINARY_PATH + "resources/cube_steve.obj",
                             new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"),
                                        std::string(BINARY_PATH + "Shaders/shader.frag")));
-    physics.AddBoxObject(floor);
+    //physics.AddBoxObject(floor);
     }
     std::random_device rd; // obtain a random number from hardware
     std::mt19937 zgen(rd()); // seed the generator
     std::mt19937 xgen(rd());
     std::uniform_int_distribution<> distr(-20, 20); // define the range
     
-    Model* model = new Model(BINARY_PATH + "resources/cube_steve.obj",
+    auto* model = new Model(BINARY_PATH + "resources/cube_steve.obj",
                 new Shader(std::string(BINARY_PATH + "Shaders/shader.vert"),
                            std::string(BINARY_PATH + "Shaders/shader.frag")));
-    for (int i = 0; i < 20; ++i) 
+    for (int i = 0; i < 30; ++i) 
     {
         auto entity = registry.create();
-        registry.emplace<Transform>(entity, glm::vec3(distr(xgen), 0, distr(zgen)), glm::vec3(0, 35.0f, 0), glm::vec3(1.0f), 1.0f);
+        registry.emplace<Transform>(entity, glm::vec3(distr(xgen), -14, distr(zgen)), glm::vec3(0, 35.0f, 0), glm::vec3(1.0f), 1.0f);
         Model* model2 = model;
         registry.emplace<Model>(entity, *model2);
-        physics.AddBoxObject(entity);
+        //physics.AddBoxObject(entity);
+    }
+    for (int i = 0; i < 10; ++i)
+    {
+        auto entity = registry.create();
+        registry.emplace<Transform>(entity, glm::vec3(distr(xgen), 30, distr(zgen)), glm::vec3(0, 35.0f, 0), glm::vec3(1.0f), 1.0f);
+        Model* model2 = model;
+        registry.emplace<Model>(entity, *model2);
+        //physics.AddBoxObject(entity);
     }
     // Currently, shader is not deleted and is leaking memory. Need to have a shader manager or something.
 }
@@ -161,8 +179,8 @@ void Application::Run()
 
 Application::Application() :
     cam(Camera({0, -2, 30}, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, fov, zFar, zNear)),
-    renderer(RendererGl(&cam, &registry)),
-    physics(bPhysicsSystem(&registry))
+    renderer(RendererGl(&cam, &registry))
+//    physics(bPhysicsSystem(&registry))
 {
     quit = false;
     initSDL();

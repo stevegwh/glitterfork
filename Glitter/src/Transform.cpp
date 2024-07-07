@@ -10,14 +10,6 @@
 namespace sage
 {
 
-Transform::Transform(glm::vec3 _position, glm::vec3 _rotation, glm::vec3 _scale) :
-position(_position), rotation(_rotation), scale(_scale), mass(0)
-{}
-
-Transform::Transform(glm::vec3 _position, glm::vec3 _rotation, glm::vec3 _scale, float _mass) :
-    position(_position), rotation(_rotation), scale(_scale), mass(_mass)
-{}
-
 glm::mat4 Transform::GetMatrix() const
 {
     auto out = glm::mat4(1.0f);
@@ -28,5 +20,13 @@ glm::mat4 Transform::GetMatrix() const
     out = glm::scale(out, scale);
     return out;
 }
+
+Transform::Transform(glm::vec3 _position, glm::vec3 _rotation, glm::vec3 _scale) :
+    position(_position), rotation(_rotation), scale(_scale), mass(0)
+{}
+
+Transform::Transform(glm::vec3 _position, glm::vec3 _rotation, glm::vec3 _scale, float _mass) :
+    position(_position), rotation(_rotation), scale(_scale), mass(_mass)
+{}
 
 } //sage
